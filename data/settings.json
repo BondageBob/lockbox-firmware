@@ -1,7 +1,7 @@
 {
-    "name": "",
-    "open_position": 180,
-    "closed_position": 0,
+    "name": "Lockbox",
+    "open_position": 20,
+    "closed_position": 90,
     "emlalock_api_user": "",
     "emlalock_api_key": ""
 }

@@ -8,8 +8,7 @@
 Lockbox *api_lockbox;
 AsyncWiFiManager *api_wifiManager;
 
-void StartServer(AsyncWebServer *api_server, Lockbox *lockbox, AsyncWiFiManager *wifiManager)
-{
+void StartServer(AsyncWebServer *api_server, Lockbox *lockbox, AsyncWiFiManager *wifiManager) {
     api_lockbox = lockbox;
     api_wifiManager = wifiManager;
     api_server->onNotFound(NotFound);
@@ -21,8 +20,7 @@ void StartServer(AsyncWebServer *api_server, Lockbox *lockbox, AsyncWiFiManager 
     api_server->begin();
 }
 
-void NotFound(AsyncWebServerRequest *request)
-{
+void NotFound(AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
     response->addHeader("Access-Control-Allow-Origin", "*");
     response->setCode(404);
@@ -33,37 +31,28 @@ void NotFound(AsyncWebServerRequest *request)
     request->send(response);
 }
 
-void ActionLock(AsyncWebServerRequest *request)
-{
+void ActionLock(AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
     response->addHeader("Access-Control-Allow-Origin", "*");
     JsonDocument doc;
 
     String password;
-    if (request->hasParam("password", true))
-    {
+    if (request->hasParam("password", true)) {
         password = request->getParam("password", true)->value();
         set_password_result result = api_lockbox->SetVaultLocked(password.c_str());
-        if (result == PASSWORD_OK)
-        {
+        if (result == PASSWORD_OK) {
             response->setCode(200);
             doc["result"] = "success";
-        }
-        else if (result == ALREADY_LOCKED)
-        {
+        } else if (result == ALREADY_LOCKED) {
             response->setCode(401);
             doc["result"] = "error";
             doc["error"] = "AlreadyLocked";
-        }
-        else
-        {
+        } else {
             response->setCode(500);
             doc["result"] = "error";
             doc["error"] = "UnexpectedError";
         }
-    }
-    else
-    {
+    } else {
         response->setCode(400);
         doc["result"] = "error";
         doc["error"] = "NoPassword";
@@ -73,43 +62,32 @@ void ActionLock(AsyncWebServerRequest *request)
     request->send(response);
 }
 
-void ActionUnlock(AsyncWebServerRequest *request)
-{
+void ActionUnlock(AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
     response->addHeader("Access-Control-Allow-Origin", "*");
     JsonDocument doc;
 
     String password;
-    if (request->hasParam("password", true))
-    {
+    if (request->hasParam("password", true)) {
         password = request->getParam("password", true)->value();
         set_password_result result = api_lockbox->SetVaultUnlocked(password.c_str());
-        if (result == PASSWORD_OK)
-        {
+        if (result == PASSWORD_OK) {
             response->setCode(200);
             doc["result"] = "success";
-        }
-        else if (result == WRONG_PASSWORD)
-        {
+        } else if (result == WRONG_PASSWORD) {
             response->setCode(401);
             doc["result"] = "error";
             doc["error"] = "WrongPassword";
-        }
-        else if (result == ALREADY_UNLOCKED)
-        {
+        } else if (result == ALREADY_UNLOCKED) {
             response->setCode(400);
             doc["result"] = "error";
             doc["error"] = "AlreadyUnlocked";
-        }
-        else
-        {
+        } else {
             response->setCode(500);
             doc["result"] = "error";
             doc["error"] = "UnexpectedError";
         }
-    }
-    else
-    {
+    } else {
         response->setCode(400);
         doc["result"] = "error";
         doc["error"] = "NoPassword";
@@ -119,8 +97,7 @@ void ActionUnlock(AsyncWebServerRequest *request)
     request->send(response);
 }
 
-void ActionSettingsGet(AsyncWebServerRequest *request)
-{
+void ActionSettingsGet(AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
     response->addHeader("Access-Control-Allow-Origin", "*");
     JsonDocument doc;
@@ -133,8 +110,7 @@ void ActionSettingsGet(AsyncWebServerRequest *request)
     request->send(response);
 }
 
-void ActionSettingsPost(AsyncWebServerRequest *request)
-{
+void ActionSettingsPost(AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
     response->addHeader("Access-Control-Allow-Origin", "*");
     JsonDocument doc;
@@ -144,117 +120,79 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
     bool setting_not_allowed = false;
 
     String name;
-    if (request->hasParam("name", true))
-    {
+    if (request->hasParam("name", true)) {
         name = request->getParam("name", true)->value();
         set_settings_result result = api_lockbox->SetBoxName(name.c_str());
-        if (result == SETTINGS_OK)
-        {
+        if (result == SETTINGS_OK) {
             setting_updated = true;
-        }
-        else if (result == LOCKED)
-        {
+        } else if (result == LOCKED) {
             setting_not_allowed = true;
-        }
-        else
-        {
+        } else {
             setting_failed = true;
         }
     }
 
-    if (request->hasParam("servo_open_position", true))
-    {
+    if (request->hasParam("servo_open_position", true)) {
         int open_position = request->getParam("servo_open_position", true)->value().toInt();
         set_settings_result result = api_lockbox->SetServoOpenPosition(open_position);
-        if (result == SETTINGS_OK)
-        {
+        if (result == SETTINGS_OK) {
             setting_updated = true;
-        }
-        else if (result == LOCKED)
-        {
+        } else if (result == LOCKED) {
             setting_not_allowed = true;
-        }
-        else
-        {
+        } else {
             setting_failed = true;
         }
     }
 
-    if (request->hasParam("servo_closed_position", true))
-    {
+    if (request->hasParam("servo_closed_position", true)) {
         int closed_position = request->getParam("servo_closed_position", true)->value().toInt();
         set_settings_result result = api_lockbox->SetServoClosedPosition(closed_position);
-        if (result == SETTINGS_OK)
-        {
+        if (result == SETTINGS_OK) {
             setting_updated = true;
-        }
-        else if (result == LOCKED)
-        {
+        } else if (result == LOCKED) {
             setting_not_allowed = true;
-        }
-        else
-        {
+        } else {
             setting_failed = true;
         }
     }
 
-    if (request->hasParam("emlalock_api_user", true))
-    {
+    if (request->hasParam("emlalock_api_user", true)) {
         String emlalock_api_user = request->getParam("emlalock_api_user", true)->value();
         set_settings_result result = api_lockbox->SetEmlalockApiUser(emlalock_api_user.c_str());
-        if (result == SETTINGS_OK)
-        {
+        if (result == SETTINGS_OK) {
             setting_updated = true;
-        }
-        else if (result == LOCKED)
-        {
+        } else if (result == LOCKED) {
             setting_not_allowed = true;
-        }
-        else
-        {
+        } else {
             setting_failed = true;
         }
     }
 
-    if (request->hasParam("emlalock_api_key", true))
-    {
+    if (request->hasParam("emlalock_api_key", true)) {
         String emlalock_api_key = request->getParam("emlalock_api_key", true)->value();
         set_settings_result result = api_lockbox->SetEmlalockApiKey(emlalock_api_key.c_str());
-        if (result == SETTINGS_OK)
-        {
+        if (result == SETTINGS_OK) {
             setting_updated = true;
-        }
-        else if (result == LOCKED)
-        {
+        } else if (result == LOCKED) {
             setting_not_allowed = true;
-        }
-        else
-        {
+        } else {
             setting_failed = true;
         }
     }
 
-    if (setting_failed)
-    {
+    if (setting_failed) {
         response->setCode(500);
         doc["result"] = "error";
         doc["error"] = "InternalError";
-    }
-    else
-    {
-        if (setting_not_allowed)
-        {
+    } else {
+        if (setting_not_allowed) {
             response->setCode(401);
             doc["result"] = "error";
             doc["error"] = "VaultLocked";
-        }
-        else if (setting_updated)
-        {
+        } else if (setting_updated) {
             response->setCode(200);
             doc["result"] = "success";
-        }
-        else
-        {
+        } else {
             response->setCode(500);
             doc["result"] = "error";
             doc["error"] = "UnknownParameter";
@@ -265,24 +203,20 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
     request->send(response);
 }
 
-void ActionReset(AsyncWebServerRequest *request)
-{
+void ActionReset(AsyncWebServerRequest *request) {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
     response->addHeader("Access-Control-Allow-Origin", "*");
     JsonDocument doc;
 
     bool success = api_lockbox->FactoryReset();
 
-    if (!success)
-    {
+    if (!success) {
         response->setCode(401);
         doc["result"] = "error";
         doc["error"] = "VaultLocked";
         serializeJson(doc, *response);
         request->send(response);
-    }
-    else
-    {
+    } else {
         response->setCode(200);
         doc["result"] = "success";
         serializeJson(doc, *response);

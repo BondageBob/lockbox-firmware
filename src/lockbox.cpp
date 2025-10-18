@@ -3,186 +3,134 @@
 #include "lockbox.h"
 #include "memory.h"
 
-Lockbox::Lockbox(Lock *lock, Memory *memory) : lock(lock), memory(memory)
-{
-    if (this->memory->GetVaultIsLocked() || this->memory->GetVaultIsEmlalocked())
-    {
+Lockbox::Lockbox(Lock *lock, Memory *memory)
+    : lock(lock)
+    , memory(memory) {
+    if (this->memory->GetVaultIsLocked() || this->memory->GetVaultIsEmlalocked()) {
         this->lock->SetClosed();
-    }
-    else
-    {
+    } else {
         this->lock->SetOpen();
     }
 
     this->emlalock_incleaning = false;
 }
 
-set_password_result Lockbox::SetVaultLocked(const char *key)
-{
-    if (this->memory->GetVaultIsLocked())
-    {
+set_password_result Lockbox::SetVaultLocked(const char *key) {
+    if (this->memory->GetVaultIsLocked()) {
         return ALREADY_LOCKED;
-    }
-    else
-    {
-        if (strlen(key) <= MAX_PASSWORD_LENGTH && this->memory->SetVaultLocked(key))
-        {
+    } else {
+        if (strlen(key) <= MAX_PASSWORD_LENGTH && this->memory->SetVaultLocked(key)) {
             this->lock->SetClosed();
             return PASSWORD_OK;
-        }
-        else
-        {
+        } else {
             return PASSWORD_INTERNAL_ERROR;
         }
     }
 }
 
-set_password_result Lockbox::SetVaultUnlocked(const char *key)
-{
-    if (!this->memory->GetVaultIsLocked())
-    {
+set_password_result Lockbox::SetVaultUnlocked(const char *key) {
+    if (!this->memory->GetVaultIsLocked()) {
         return ALREADY_UNLOCKED;
-    }
-    else
-    {
+    } else {
         char stored_password[MAX_PASSWORD_LENGTH + 1];
         this->memory->GetVaultPassword(stored_password, sizeof(stored_password));
-        if (strcmp(key, stored_password) == 0)
-        {
+        if (strcmp(key, stored_password) == 0) {
             this->memory->SetVaultUnlocked();
             if (!this->memory->GetVaultIsLocked() && !this->memory->GetVaultIsEmlalocked())
                 this->lock->SetOpen();
             return PASSWORD_OK;
-        }
-        else
-        {
+        } else {
             return WRONG_PASSWORD;
         }
     }
 }
 
-set_settings_result Lockbox::SetBoxName(const char *name)
-{
+set_settings_result Lockbox::SetBoxName(const char *name) {
     this->memory->SetName(name);
     return SETTINGS_OK;
 }
 
-set_settings_result Lockbox::SetServoOpenPosition(int position)
-{
-    if (this->memory->GetVaultIsLocked())
-    {
+set_settings_result Lockbox::SetServoOpenPosition(int position) {
+    if (this->memory->GetVaultIsLocked()) {
         return LOCKED;
-    }
-    else
-    {
+    } else {
         this->memory->SetOpenPosition(position);
         return SETTINGS_OK;
     }
 }
 
-set_settings_result Lockbox::SetServoClosedPosition(int position)
-{
-    if (this->memory->GetVaultIsLocked())
-    {
+set_settings_result Lockbox::SetServoClosedPosition(int position) {
+    if (this->memory->GetVaultIsLocked()) {
         return LOCKED;
-    }
-    else
-    {
+    } else {
         this->memory->SetClosedPosition(position);
         return SETTINGS_OK;
     }
 }
 
-bool Lockbox::FactoryReset()
-{
-    if (this->memory->GetVaultIsLocked())
-    {
+bool Lockbox::FactoryReset() {
+    if (this->memory->GetVaultIsLocked()) {
         return false;
-    }
-    else
-    {
+    } else {
         this->memory->Reset();
         return true;
     }
 }
 
-void Lockbox::ForceFactoryReset()
-{
+void Lockbox::ForceFactoryReset() {
     this->memory->Reset();
 }
 
-bool Lockbox::GetVaultLocked()
-{
+bool Lockbox::GetVaultLocked() {
     return this->memory->GetVaultIsLocked();
 }
 
-set_settings_result Lockbox::SetEmlalockApiUser(const char *apiUser)
-{
-    if (this->memory->GetVaultIsLocked())
-    {
+set_settings_result Lockbox::SetEmlalockApiUser(const char *apiUser) {
+    if (this->memory->GetVaultIsLocked()) {
         return LOCKED;
-    }
-    else
-    {
+    } else {
         this->memory->SetEmlalockApiUser(apiUser);
         return SETTINGS_OK;
     }
 }
 
-set_settings_result Lockbox::SetEmlalockApiKey(const char *apiKey)
-{
-    if (this->memory->GetVaultIsLocked())
-    {
+set_settings_result Lockbox::SetEmlalockApiKey(const char *apiKey) {
+    if (this->memory->GetVaultIsLocked()) {
         return LOCKED;
-    }
-    else
-    {
+    } else {
         this->memory->SetEmlalockApiKey(apiKey);
         return SETTINGS_OK;
     }
 }
 
-set_password_result Lockbox::SetVaultEmlalocked(const char *key)
-{
-    if (this->memory->GetVaultIsEmlalocked())
-    {
+set_password_result Lockbox::SetVaultEmlalocked(const char *key) {
+    if (this->memory->GetVaultIsEmlalocked()) {
         return ALREADY_LOCKED;
-    }
-    else
-    {
-        if (strlen(key) <= MAX_PASSWORD_LENGTH && this->memory->SetVaultEmlalocked(key))
-        {
+    } else {
+        if (strlen(key) <= MAX_PASSWORD_LENGTH && this->memory->SetVaultEmlalocked(key)) {
             this->lock->SetClosed();
             return PASSWORD_OK;
-        }
-        else
-        {
+        } else {
             return PASSWORD_INTERNAL_ERROR;
         }
     }
 }
 
-set_password_result Lockbox::SetVaultUnemlalocked()
-{
-    if (!this->memory->GetVaultIsEmlalocked())
-    {
+set_password_result Lockbox::SetVaultUnemlalocked() {
+    if (!this->memory->GetVaultIsEmlalocked()) {
         return ALREADY_UNLOCKED;
-    }
-    else
-    {
+    } else {
         if (this->memory->SetVaultUnemlalocked() && !this->memory->GetVaultIsLocked())
             this->lock->SetOpen();
         return PASSWORD_OK;
     }
 }
 
-bool Lockbox::GetVaultEmlalocked()
-{
+bool Lockbox::GetVaultEmlalocked() {
     return this->memory->GetVaultIsEmlalocked();
 }
 
-void Lockbox::SetVaultEmlalockIncleaning(bool state)
-{
+void Lockbox::SetVaultEmlalockIncleaning(bool state) {
     this->emlalock_incleaning = state;
     if (state)
         this->lock->SetOpen();
@@ -190,13 +138,11 @@ void Lockbox::SetVaultEmlalockIncleaning(bool state)
         this->lock->SetClosed();
 }
 
-bool Lockbox::GetVaultEmlalockIncleaning()
-{
+bool Lockbox::GetVaultEmlalockIncleaning() {
     return this->emlalock_incleaning;
 }
 
-bool Lockbox::GetSettings(JsonDocument *doc)
-{
+bool Lockbox::GetSettings(JsonDocument *doc) {
     (*doc)["locked"] = this->memory->GetVaultIsLocked();
     (*doc)["emlalocked"] = this->memory->GetVaultIsEmlalocked();
     (*doc)["incleaning"] = this->emlalock_incleaning;

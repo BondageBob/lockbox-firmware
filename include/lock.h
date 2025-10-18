@@ -7,8 +7,7 @@
 #include <ESP32Servo.h>
 #endif
 
-class Lock
-{
+class Lock {
 private:
     Servo servo;
     int open_position;

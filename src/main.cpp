@@ -34,15 +34,13 @@ Lockbox *lockbox;
 String api_host;
 static unsigned long last_time = 0;
 
-String processor(const String &var)
-{
+String processor(const String &var) {
     if (var == "API_HOST")
         return api_host;
     return String();
 }
 
-void check_emlalock_session()
-{
+void check_emlalock_session() {
     WiFiClientSecure *client = new WiFiClientSecure;
     HTTPClient https;
     char api_user[32];
@@ -59,14 +57,12 @@ void check_emlalock_session()
     client->setInsecure();
     https.useHTTP10(true);
     bool ret = https.begin(*client, "api.emlalock.com", 443, url, true);
-    if (!ret)
-    {
+    if (!ret) {
         log_e("https.begin failed");
         return;
     }
     int httpCode = https.GET();
-    if (httpCode != 200)
-    {
+    if (httpCode != 200) {
         log_e("http error: %d", httpCode);
         return;
     }
@@ -74,8 +70,7 @@ void check_emlalock_session()
     https.end();
 
     const char *error = info["error"];
-    if (error != NULL)
-    {
+    if (error != NULL) {
         log_e("error: %s", error);
         return;
     }
@@ -85,52 +80,38 @@ void check_emlalock_session()
 
     log_i("is_emlalocked: %d", is_emlalocked);
 
-    if (is_emlalocked && chastitysessionid == NULL)
-    {
-        /* no Emlalock session detected, but the vault is emlalocked.
-           Unemlalock the vault. */
+    if (is_emlalocked && chastitysessionid == NULL) {
+        /* no Emlalock session detected, but the vault is emlalocked. Unemlalock the vault. */
         lockbox->SetVaultUnemlalocked();
-    }
-    else if (!is_emlalocked && chastitysessionid != NULL)
-    {
+    } else if (!is_emlalocked && chastitysessionid != NULL) {
         /* sessionid isn't yet stored, time to lock up */
         lockbox->SetVaultEmlalocked(chastitysessionid);
-    }
-    else if (is_emlalocked && chastitysessionid != NULL)
-    {
+    } else if (is_emlalocked && chastitysessionid != NULL) {
         /* vault is emlalocked, check if we are in a cleaningopening */
         lockbox->SetVaultEmlalockIncleaning(info["chastitysession"]["incleaning"]);
     }
 }
 
-void listDir(File dir, int level = 0)
-{
-    while (File file = dir.openNextFile())
-    {
-        if (file.isDirectory())
-        {
+void listDir(File dir, int level = 0) {
+    while (File file = dir.openNextFile()) {
+        if (file.isDirectory()) {
             log_i("%*s%s", level * 2, "", file.name());
             listDir(file, level + 1);
-        }
-        else
-        {
-            log_i("%*s%-*s Größe: %7d Bytes", level * 2, "", 20 - level * 2, file.name(), file.size());
+        } else {
+            log_i(
+                "%*s%-*s Größe: %7d Bytes", level * 2, "", 20 - level * 2, file.name(), file.size());
         }
         file.close();
     }
 }
 
-void setup()
-{
+void setup() {
     Serial.begin(9600);
     delay(10);
 
-    if (!LittleFS.begin())
-    {
+    if (!LittleFS.begin()) {
         log_e("An Error has occurred while mounting LittleFS");
-    }
-    else
-    {
+    } else {
         File root = LittleFS.open("/", "r");
         log_i("=== LittleFS Dateisystem Inhalt ===");
         listDir(root);
@@ -151,15 +132,13 @@ void setup()
     lockbox = new Lockbox(lock, memory);
 
     char box_name[MAX_NAME_LENGTH] = "";
-    if (!memory->GetName(box_name, MAX_NAME_LENGTH))
-    {
+    if (!memory->GetName(box_name, MAX_NAME_LENGTH)) {
         snprintf(box_name, sizeof(box_name), "Lockbox");
     }
     log_i("box name: '%s'\n", box_name);
     WiFi.softAPdisconnect(true);
     wifiManager = new AsyncWiFiManager(frontend_server, dns);
-    if (!wifiManager->autoConnect(box_name))
-    {
+    if (!wifiManager->autoConnect(box_name)) {
         log_e("Failed to connect and hit timeout");
         delay(3000);
         ESP.restart();
@@ -173,34 +152,32 @@ void setup()
 
     // Wifi is connected, we can repurpose frontend server
     DefaultHeaders::Instance().addHeader("X-Content-Type-Options", "nosniff");
-    DefaultHeaders::Instance().addHeader("Content-Security-Policy", "default-src 'self'; style-src 'self' unpkg.com; script-src 'self';connect-src *;base-uri 'self';form-action 'self'");
+    DefaultHeaders::Instance().addHeader(
+        "Content-Security-Policy",
+        "default-src 'self'; style-src 'self' unpkg.com; script-src 'self';connect-src *;base-uri 'self';form-action 'self'");
     DefaultHeaders::Instance().addHeader("Referrer-Policy", "no-referrer");
     frontend_server->reset();
     frontend_server->begin();
     frontend_server->serveStatic("/", LittleFS, "/www");
-    frontend_server->serveStatic("/templates", LittleFS, "/templates").setTemplateProcessor(processor);
+    frontend_server->serveStatic("/templates", LittleFS, "/templates")
+        .setTemplateProcessor(processor);
     StartServer(api_server, lockbox, wifiManager);
 
     MDNS.addService("ekilb", "tcp", API_PORT);
-    if (!MDNS.begin(box_name))
-    {
+    if (!MDNS.begin(box_name)) {
         log_e("Error setting up MDNS responder!");
-    }
-    else
-    {
+    } else {
         log_i("mDNS responder started");
     }
 }
 
-void loop()
-{
+void loop() {
 #if defined(ESP8266)
     MDNS.update();
 #endif
 
 #if defined(CONFIG_UNLOCK_PIN)
-    if (!digitalRead(CONFIG_UNLOCK_PIN))
-    {
+    if (!digitalRead(CONFIG_UNLOCK_PIN)) {
         log_i("unlock overwrite button pressed");
         lockbox->SetVaultUnemlalocked();
         memory->SetVaultUnlocked();
@@ -208,8 +185,7 @@ void loop()
     }
 #endif
 
-    if (last_time + 15000 < millis())
-    {
+    if (last_time + 15000 < millis()) {
         last_time = millis();
         check_emlalock_session();
     }

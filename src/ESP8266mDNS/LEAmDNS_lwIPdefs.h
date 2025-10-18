@@ -25,6 +25,6 @@
 #ifndef MDNS_LWIPDEFS_H
 #define MDNS_LWIPDEFS_H
 
-#include <lwip/prot/dns.h>  // DNS_RRTYPE_xxx, DNS_MQUERY_PORT
+#include <lwip/prot/dns.h> // DNS_RRTYPE_xxx, DNS_MQUERY_PORT
 
-#endif  // MDNS_LWIPDEFS_H
+#endif // MDNS_LWIPDEFS_H

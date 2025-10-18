@@ -2,8 +2,7 @@
 
 #define DEFAULT_BOX_NAME_PREFIX "eki_lockbox_"
 
-class Memory
-{
+class Memory {
 private:
     uint32_t GetAgnosticChipId();
     bool LoadString(char const *path, char const *setting, char *value, int len);

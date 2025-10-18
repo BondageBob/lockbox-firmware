@@ -25,19 +25,17 @@
 #ifndef MDNS_PRIV_H
 #define MDNS_PRIV_H
 
-namespace esp8266
-{
+namespace esp8266 {
 
 /*
     LEAmDNS
 */
 
-namespace MDNSImplementation
-{
+namespace MDNSImplementation {
 
 // Enable class debug functions
 #define ESP_8266_MDNS_INCLUDE
-    //#define DEBUG_ESP_MDNS_RESPONDER
+// #define DEBUG_ESP_MDNS_RESPONDER
 
 #if !defined(DEBUG_ESP_MDNS_RESPONDER) && defined(DEBUG_ESP_MDNS)
 #define DEBUG_ESP_MDNS_RESPONDER
@@ -51,7 +49,7 @@ namespace MDNSImplementation
 // If ENABLE_ESP_MDNS_RESPONDER_PASSIV_MODE is defined, the mDNS responder ignores a successful
 // probing This allows to drive the responder in a environment, where 'update()' isn't called in the
 // loop
-//#define ENABLE_ESP_MDNS_RESPONDER_PASSIV_MODE
+// #define ENABLE_ESP_MDNS_RESPONDER_PASSIV_MODE
 
 // Enable/disable debug trace macros
 #if defined(DEBUG_ESP_PORT) && defined(DEBUG_ESP_MDNS_RESPONDER)
@@ -89,25 +87,21 @@ namespace MDNSImplementation
 #define DEBUG_OUTPUT Serial
 #endif
 #else
-#define DEBUG_EX_INFO(A)                                                                           \
-    do                                                                                             \
-    {                                                                                              \
-        (void)0;                                                                                   \
+#define DEBUG_EX_INFO(A) \
+    do {                 \
+        (void)0;         \
     } while (0)
-#define DEBUG_EX_ERR(A)                                                                            \
-    do                                                                                             \
-    {                                                                                              \
-        (void)0;                                                                                   \
+#define DEBUG_EX_ERR(A) \
+    do {                \
+        (void)0;        \
     } while (0)
-#define DEBUG_EX_TX(A)                                                                             \
-    do                                                                                             \
-    {                                                                                              \
-        (void)0;                                                                                   \
+#define DEBUG_EX_TX(A) \
+    do {               \
+        (void)0;       \
     } while (0)
-#define DEBUG_EX_RX(A)                                                                             \
-    do                                                                                             \
-    {                                                                                              \
-        (void)0;                                                                                   \
+#define DEBUG_EX_RX(A) \
+    do {               \
+        (void)0;       \
     } while (0)
 #endif
 
@@ -117,7 +111,7 @@ namespace MDNSImplementation
    v4group = DNS_MQUERY_IPV4_GROUP_INIT #endif #ifdef MDNS_IP6_SUPPORT #define
    DNS_MQUERY_IPV6_GROUP_INIT     IPADDR6_INIT_HOST(0xFF020000,0,0,0xFB)   // ip_addr_t v6group =
    DNS_MQUERY_IPV6_GROUP_INIT #endif*/
-//#define MDNS_MULTICAST_PORT               5353
+// #define MDNS_MULTICAST_PORT               5353
 
 /*
     This is NOT the TTL (Time-To-Live) for MDNS records, but the
@@ -168,7 +162,7 @@ namespace MDNSImplementation
 /*
     Force host domain to use only lowercase letters
 */
-//#define MDNS_FORCE_LOWERCASE_HOSTNAME
+// #define MDNS_FORCE_LOWERCASE_HOSTNAME
 
 /*
     Enable/disable the usage of the F() macro in debug trace printf calls.
@@ -186,11 +180,11 @@ namespace MDNSImplementation
 #define F(A) A
 #endif
 
-}  // namespace MDNSImplementation
+} // namespace MDNSImplementation
 
-}  // namespace esp8266
+} // namespace esp8266
 
 // Include the main header, so the submodlues only need to include this header
 #include "LEAmDNS.h"
 
-#endif  // MDNS_PRIV_H
+#endif // MDNS_PRIV_H

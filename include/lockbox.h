@@ -6,8 +6,7 @@
 #include "memory.h"
 #include "lockbox_result.h"
 
-class Lockbox
-{
+class Lockbox {
 private:
     Lock *lock;
     Memory *memory;
