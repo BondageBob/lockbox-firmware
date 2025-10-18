@@ -25,7 +25,7 @@ public:
     bool FactoryReset();
     void ForceFactoryReset();
     bool GetVaultLocked();
-    bool GetSettings(DynamicJsonDocument *doc);
+    bool GetSettings(JsonDocument *doc);
     set_password_result SetVaultEmlalocked(const char *key);
     set_password_result SetVaultUnemlalocked();
     bool GetVaultEmlalocked();

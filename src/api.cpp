@@ -26,7 +26,7 @@ void NotFound(AsyncWebServerRequest *request)
     AsyncResponseStream *response = request->beginResponseStream("application/json");
     response->addHeader("Access-Control-Allow-Origin", "*");
     response->setCode(404);
-    DynamicJsonDocument doc(512);
+    JsonDocument doc;
     doc["result"] = "error";
     doc["error"] = "NotFound";
     serializeJson(doc, *response);
@@ -37,7 +37,7 @@ void ActionLock(AsyncWebServerRequest *request)
 {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
     response->addHeader("Access-Control-Allow-Origin", "*");
-    DynamicJsonDocument doc(512);
+    JsonDocument doc;
 
     String password;
     if (request->hasParam("password", true))
@@ -77,7 +77,7 @@ void ActionUnlock(AsyncWebServerRequest *request)
 {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
     response->addHeader("Access-Control-Allow-Origin", "*");
-    DynamicJsonDocument doc(512);
+    JsonDocument doc;
 
     String password;
     if (request->hasParam("password", true))
@@ -123,10 +123,10 @@ void ActionSettingsGet(AsyncWebServerRequest *request)
 {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
     response->addHeader("Access-Control-Allow-Origin", "*");
-    DynamicJsonDocument doc(512);
+    JsonDocument doc;
     response->setCode(200);
     doc["result"] = "succes";
-    DynamicJsonDocument data(512);
+    JsonDocument data;
     api_lockbox->GetSettings(&data);
     doc["data"] = data;
     serializeJson(doc, *response);
@@ -137,7 +137,7 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
 {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
     response->addHeader("Access-Control-Allow-Origin", "*");
-    DynamicJsonDocument doc(1024);
+    JsonDocument doc;
 
     bool setting_updated = false;
     bool setting_failed = false;
@@ -269,7 +269,7 @@ void ActionReset(AsyncWebServerRequest *request)
 {
     AsyncResponseStream *response = request->beginResponseStream("application/json");
     response->addHeader("Access-Control-Allow-Origin", "*");
-    DynamicJsonDocument doc(512);
+    JsonDocument doc;
 
     bool success = api_lockbox->FactoryReset();
 

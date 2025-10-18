@@ -46,7 +46,7 @@ void check_emlalock_session()
     char api_user[32];
     char api_key[32];
     char url[100];
-    DynamicJsonDocument info(6144);
+    JsonDocument info;
 
     memory->GetEmlalockApiUser(api_user, sizeof(api_user));
     memory->GetEmlalockApiKey(api_key, sizeof(api_user));

@@ -17,5 +17,5 @@
 #if defined(ESP8266)
 #define PINSERVO D4
 #elif defined(ESP32)
-#define PINSERVO 13
+#define PINSERVO CONFIG_SERVO_PIN
 #endif

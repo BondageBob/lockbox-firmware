@@ -22,7 +22,7 @@ uint32_t Memory::GetAgnosticChipId()
 
 bool Memory::LoadString(char const *path, char const *setting, char *value, int len)
 {
-    DynamicJsonDocument doc(1024);
+    JsonDocument doc;
     File file = LittleFS.open(path, "r");
     if (file == 0)
     {
@@ -37,7 +37,7 @@ bool Memory::LoadString(char const *path, char const *setting, char *value, int 
 
 int Memory::LoadInt(char const *path, char const *setting)
 {
-    DynamicJsonDocument doc(1024);
+    JsonDocument doc;
     File file = LittleFS.open(path, "r");
     deserializeJson(doc, file);
     file.close();
@@ -46,7 +46,7 @@ int Memory::LoadInt(char const *path, char const *setting)
 
 bool Memory::Save(char const *path, char const *setting, char const *value)
 {
-    DynamicJsonDocument doc(1024);
+    JsonDocument doc;
     File file = LittleFS.open(path, "r");
     if (file == 0)
     {
@@ -69,7 +69,7 @@ bool Memory::Save(char const *path, char const *setting, char const *value)
 
 bool Memory::Save(char const *path, char const *setting, int value)
 {
-    DynamicJsonDocument doc(1024);
+    JsonDocument doc;
     File file = LittleFS.open(path, "r");
     if (file == 0)
     {

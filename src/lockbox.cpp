@@ -195,7 +195,7 @@ bool Lockbox::GetVaultEmlalockIncleaning()
     return this->emlalock_incleaning;
 }
 
-bool Lockbox::GetSettings(DynamicJsonDocument *doc)
+bool Lockbox::GetSettings(JsonDocument *doc)
 {
     (*doc)["locked"] = this->memory->GetVaultIsLocked();
     (*doc)["emlalocked"] = this->memory->GetVaultIsEmlalocked();
