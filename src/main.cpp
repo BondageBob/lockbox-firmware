@@ -1,3 +1,5 @@
+#define CORE_DEBUG_LEVEL ARDUHAL_LOG_LEVEL_INFO
+
 #include <Arduino.h>
 #include <AsyncJson.h>
 #include <ESPAsyncWebServer.h>
@@ -21,8 +23,6 @@
 #include "ESPmDNS.h"
 #endif
 
-WiFiClientSecure *client;
-HTTPClient https;
 DNSServer *dns;
 AsyncWebServer *api_server;
 AsyncWebServer *frontend_server;
@@ -43,6 +43,8 @@ String processor(const String &var)
 
 void check_emlalock_session()
 {
+    WiFiClientSecure *client = new WiFiClientSecure;
+    HTTPClient https;
     char api_user[32];
     char api_key[32];
     char url[100];
@@ -52,21 +54,36 @@ void check_emlalock_session()
     memory->GetEmlalockApiKey(api_key, sizeof(api_user));
     sprintf(url, "https://api.emlalock.com/info?userid=%s&apikey=%s", api_user, api_key);
 
+    log_d("checking %s", url);
+
+    client->setInsecure();
     https.useHTTP10(true);
-    https.begin(*client, url);
-    https.GET();
+    bool ret = https.begin(*client, "api.emlalock.com", 443, url, true);
+    if (!ret)
+    {
+        log_e("https.begin failed");
+        return;
+    }
+    int httpCode = https.GET();
+    if (httpCode != 200)
+    {
+        log_e("http error: %d", httpCode);
+        return;
+    }
     deserializeJson(info, https.getStream());
     https.end();
 
     const char *error = info["error"];
     if (error != NULL)
     {
-        Serial.println(error);
+        log_e("error: %s", error);
         return;
     }
 
     bool is_emlalocked = lockbox->GetVaultEmlalocked();
     const char *chastitysessionid = info["chastitysession"]["chastitysessionid"];
+
+    log_i("is_emlalocked: %d", is_emlalocked);
 
     if (is_emlalocked && chastitysessionid == NULL)
     {
@@ -86,6 +103,23 @@ void check_emlalock_session()
     }
 }
 
+void listDir(File dir, int level = 0)
+{
+    while (File file = dir.openNextFile())
+    {
+        if (file.isDirectory())
+        {
+            log_i("%*s%s", level * 2, "", file.name());
+            listDir(file, level + 1);
+        }
+        else
+        {
+            log_i("%*s%-*s Größe: %7d Bytes", level * 2, "", 20 - level * 2, file.name(), file.size());
+        }
+        file.close();
+    }
+}
+
 void setup()
 {
     Serial.begin(9600);
@@ -93,15 +127,21 @@ void setup()
 
     if (!LittleFS.begin())
     {
-        Serial.println("An Error has occurred while mounting LittleFS");
+        log_e("An Error has occurred while mounting LittleFS");
+    }
+    else
+    {
+        File root = LittleFS.open("/", "r");
+        log_i("=== LittleFS Dateisystem Inhalt ===");
+        listDir(root);
+        root.close();
+        log_i("================================");
     }
 
 #if defined(ESP8266)
     pinMode(D3, INPUT_PULLUP);
 #endif
 
-    client = new WiFiClientSecure;
-    client->setInsecure();
     dns = new DNSServer;
     api_server = new AsyncWebServer(API_PORT);
     frontend_server = new AsyncWebServer(FRONTEND_PORT);
@@ -110,13 +150,17 @@ void setup()
     lock = new Lock(PINSERVO, memory->GetOpenPosition(), memory->GetClosedPosition());
     lockbox = new Lockbox(lock, memory);
 
+    char box_name[MAX_NAME_LENGTH] = "";
+    if (!memory->GetName(box_name, MAX_NAME_LENGTH))
+    {
+        snprintf(box_name, sizeof(box_name), "Lockbox");
+    }
+    log_i("box name: '%s'\n", box_name);
     WiFi.softAPdisconnect(true);
-    char box_name[MAX_NAME_LENGTH];
-    memory->GetName(box_name, MAX_NAME_LENGTH);
     wifiManager = new AsyncWiFiManager(frontend_server, dns);
     if (!wifiManager->autoConnect(box_name))
     {
-        Serial.println("Failed to connect and hit timeout");
+        log_e("Failed to connect and hit timeout");
         delay(3000);
         ESP.restart();
     }
@@ -135,17 +179,17 @@ void setup()
     frontend_server->begin();
     frontend_server->serveStatic("/", LittleFS, "/www");
     frontend_server->serveStatic("/templates", LittleFS, "/templates").setTemplateProcessor(processor);
+    StartServer(api_server, lockbox, wifiManager);
 
     MDNS.addService("ekilb", "tcp", API_PORT);
     if (!MDNS.begin(box_name))
     {
-        Serial.println("Error setting up MDNS responder!");
+        log_e("Error setting up MDNS responder!");
     }
     else
     {
-        Serial.println("mDNS responder started");
+        log_i("mDNS responder started");
     }
-    StartServer(api_server, lockbox, wifiManager); // api.h
 }
 
 void loop()
@@ -154,17 +198,17 @@ void loop()
     MDNS.update();
 #endif
 
-#if defined(ESP8266)
-    if (!digitalRead(D3))
-#elif defined(ESP32)
-    if (!digitalRead(0))
-#endif
+#if defined(CONFIG_UNLOCK_PIN)
+    if (!digitalRead(CONFIG_UNLOCK_PIN))
     {
+        log_i("unlock overwrite button pressed");
+        lockbox->SetVaultUnemlalocked();
         memory->SetVaultUnlocked();
         ESP.restart();
     }
+#endif
 
-    if (last_time + 5000 < millis())
+    if (last_time + 15000 < millis())
     {
         last_time = millis();
         check_emlalock_session();
